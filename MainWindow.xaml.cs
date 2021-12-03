@@ -23,6 +23,8 @@ namespace Timetronome
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = new ViewModel();
         }
     }
 }
