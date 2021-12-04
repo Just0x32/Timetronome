@@ -11,16 +11,22 @@ namespace Timetronome
 {
     class Model : INotifyPropertyChanged
     {
-        private static object locker = new object();
-
         private int settedTempo;
         private int settedTime;
         private int estimateTime;
+
+        Thread timerThread;
+        Thread clickerThread;
+        Thread stopMetronomeThread;
 
         public Model(int receivedTempo, int receivedTime)
         {
             SettedTempo = receivedTempo;
             SettedTime = receivedTime;
+
+            EstimateTime = 0;
+
+            IsMetronomeRunned = false;
         }
 
         public int SettedTempo
@@ -60,9 +66,9 @@ namespace Timetronome
                 {
                     settedTime = 600;
                 }
-                else if (value < 0)
+                else if (value < 1)
                 {
-                    settedTime = 0;
+                    settedTime = 1;
                 }
                 else
                 {
@@ -87,37 +93,55 @@ namespace Timetronome
             }
         }
 
-        public bool IsStoppingMetronome { get; set; }
+        public bool IsMetronomeRunned { get; set; }
 
-        public void Run()
+        public void RunMetronome()
         {
-            IsStoppingMetronome = false;
-
-            Thread clickerThread = new Thread(new ThreadStart(Clicker));
-            Thread timerThread = new Thread(new ThreadStart(Timer));
+            clickerThread = new Thread(new ThreadStart(Clicker));
+            timerThread = new Thread(new ThreadStart(Timer));
 
             clickerThread.Start();
             timerThread.Start();
+
+            IsMetronomeRunned = true;
         }
 
-        public void Stop()
+        public void StopMetronome()
         {
+            IsMetronomeRunned = false;
 
+            if (clickerThread.IsAlive)
+                clickerThread.Interrupt();
+
+            if (EstimateTime > 0)
+                timerThread.Interrupt();
         }
 
         private void Clicker()
         {
+            int delay = 60000 / SettedTempo;
 
+            while (IsMetronomeRunned)
+            {
+                //Click
+
+                Thread.Sleep(delay);
+            }
         }
 
         private void Timer()
         {
-            for (EstimateTime = SettedTime; EstimateTime > 0; EstimateTime--)
+            EstimateTime = SettedTime;
+
+            do
             {
                 Thread.Sleep(60000);
+                EstimateTime--;
             }
+            while (IsMetronomeRunned && (EstimateTime > 0));
 
-            Stop();
+            IsMetronomeRunned = false;
+            EstimateTime = 0;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
