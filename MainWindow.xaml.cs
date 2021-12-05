@@ -20,11 +20,16 @@ namespace Timetronome
     /// </summary>
     public partial class MainWindow : Window
     {
+        ViewModel viewModel;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            DataContext = new ViewModel();
+            viewModel = new ViewModel();
+            DataContext = viewModel;
+
+            
         }
     }
 }

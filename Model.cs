@@ -11,23 +11,14 @@ namespace Timetronome
 {
     class Model : INotifyPropertyChanged
     {
+        private bool isMetronomeRunned = false;
         private int settedTempo;
         private int settedTime;
         private int estimateTime;
 
         Thread timerThread;
         Thread clickerThread;
-        Thread stopMetronomeThread;
-
-        public Model(int receivedTempo, int receivedTime)
-        {
-            SettedTempo = receivedTempo;
-            SettedTime = receivedTime;
-
-            EstimateTime = 0;
-
-            IsMetronomeRunned = false;
-        }
+        //Thread stopMetronomeThread;
 
         public int SettedTempo
         {
@@ -41,9 +32,9 @@ namespace Timetronome
                 {
                     settedTempo = 300;
                 }
-                else if (value < 0)
+                else if (value < 20)
                 {
-                    settedTempo = 0;
+                    settedTempo = 20;
                 }
                 else
                 {
@@ -93,10 +84,24 @@ namespace Timetronome
             }
         }
 
-        public bool IsMetronomeRunned { get; set; }
-
-        public void RunMetronome()
+        public bool IsMetronomeRunned
         {
+            get
+            {
+                return isMetronomeRunned;
+            }
+            set
+            {
+                isMetronomeRunned = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public void RunMetronome(int receivedTempo, int receivedTime)
+        {
+            SettedTempo = receivedTempo;
+            SettedTime = receivedTime;
+
             clickerThread = new Thread(new ThreadStart(Clicker));
             timerThread = new Thread(new ThreadStart(Timer));
 
@@ -113,7 +118,7 @@ namespace Timetronome
             if (clickerThread.IsAlive)
                 clickerThread.Interrupt();
 
-            if (EstimateTime > 0)
+            if (timerThread.IsAlive)
                 timerThread.Interrupt();
         }
 
@@ -123,7 +128,7 @@ namespace Timetronome
 
             while (IsMetronomeRunned)
             {
-                //Click
+                Console.Beep(4000, 100);
 
                 Thread.Sleep(delay);
             }
@@ -141,13 +146,12 @@ namespace Timetronome
             while (IsMetronomeRunned && (EstimateTime > 0));
 
             IsMetronomeRunned = false;
-            EstimateTime = 0;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        public void OnPropertyChanged([CallerMemberName] string property = "")
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
