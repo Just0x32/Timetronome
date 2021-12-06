@@ -9,16 +9,23 @@ using System.Runtime.CompilerServices;
 
 namespace Timetronome
 {
-    class Model : INotifyPropertyChanged
+    public class Model : INotifyPropertyChanged
     {
-        private bool isMetronomeRunned = false;
+        private bool isMetronomeRunned;
         private int settedTempo;
         private int settedTime;
         private int estimateTime;
 
         Thread timerThread;
         Thread clickerThread;
-        //Thread stopMetronomeThread;
+
+        public Model (int receivedTempo, int receivedTime)
+        {
+            SettedTempo = receivedTempo;
+            SettedTime = receivedTime;
+
+            IsMetronomeRunned = false;
+        }
 
         public int SettedTempo
         {
@@ -130,7 +137,11 @@ namespace Timetronome
             {
                 Console.Beep(4000, 100);
 
-                Thread.Sleep(delay);
+                try
+                {
+                    Thread.Sleep(delay);
+                }
+                catch (ThreadInterruptedException e) { }
             }
         }
 
@@ -140,7 +151,12 @@ namespace Timetronome
 
             do
             {
-                Thread.Sleep(60000);
+                try
+                {
+                    Thread.Sleep(60000);
+                }
+                catch (ThreadInterruptedException e) { }
+
                 EstimateTime--;
             }
             while (IsMetronomeRunned && (EstimateTime > 0));

@@ -20,16 +20,20 @@ namespace Timetronome
     /// </summary>
     public partial class MainWindow : Window
     {
-        ViewModel viewModel;
+        private ViewModel viewModel;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            viewModel = new ViewModel();
-            DataContext = viewModel;
+            viewModel = new ViewModel("120", "5");
 
-            
+            DataContext = viewModel;
+        }
+
+        private void StartStopButtonClick(object sender, RoutedEventArgs e)
+        {
+            viewModel.ToggleMetronomeState(TempoTextBox.Text, TimerTextBox.Text);
         }
     }
 }

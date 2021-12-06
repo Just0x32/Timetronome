@@ -8,40 +8,84 @@ using System.Runtime.CompilerServices;
 
 namespace Timetronome
 {
-    class ViewModel /*: INotifyPropertyChanged*/
+    public class ViewModel : INotifyPropertyChanged
     {
-        Model model;
+        private Model model;
 
-        private int toModelTempo = 120;
-        private int toModelTime = 5;
+        private bool isMetronomeRunned = false;
 
-        public ViewModel()
+        private int actualModelTempo;
+        private int actualModelTime;
+
+        public ViewModel(string fromViewTempo, string fromViewTime)
         {
-            model = new Model();
+            ActualModelTempo = ParseString(fromViewTempo, ActualModelTempo);
+            ActualModelTime = ParseString(fromViewTime, ActualModelTime);
+
+            model = new Model(ActualModelTempo, ActualModelTime);
+            model.PropertyChanged += FromModelNotify;
         }
 
-        public void RunMetronome(string fromViewTempo, string fromViewTime)
+        public int ActualModelTempo
         {
-            toModelTempo = int.Parse(fromViewTempo);
-            toModelTime = int.Parse(fromViewTime);
-
-            model.RunMetronome(toModelTempo, toModelTime);
+            get => actualModelTempo;
+            set => actualModelTempo = value;
         }
 
-        public void StopMetronome()
+        public int ActualModelTime
         {
-            model.StopMetronome();
+            get => actualModelTime;
+            set => actualModelTime = value;
         }
 
+        public int SettedTempo
+        {
+            get => model.SettedTempo;
+        }
 
+        public int SettedTime
+        {
+            get => model.SettedTime;
+        }
 
-        //public bool IsMetronomeRunned { get; set; }
+        private int ParseString(string inputString, int previousIntVariableValue)
+        {
+            int parseResult;
 
+            if (int.TryParse(inputString, out parseResult))
+            {
+                return parseResult;
+            }
+            else
+            {
+                return previousIntVariableValue;
+            }
+        }
 
-        //public event PropertyChangedEventHandler PropertyChanged;
-        //public void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        //{
-        //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        //}
+        public void ToggleMetronomeState(string fromViewTempo, string fromViewTime)
+        {
+            ActualModelTempo = ParseString(fromViewTempo, ActualModelTempo);
+            ActualModelTime = ParseString(fromViewTime, ActualModelTime);
+
+            if (!isMetronomeRunned)
+                model.RunMetronome(ActualModelTempo, ActualModelTime);
+            else
+            {
+                model.StopMetronome();
+            }
+
+            isMetronomeRunned = !isMetronomeRunned;
+        }
+
+        public void FromModelNotify(object sender, PropertyChangedEventArgs e)
+        {
+            OnPropertyChanged(e.PropertyName);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged(string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
