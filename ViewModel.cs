@@ -12,41 +12,22 @@ namespace Timetronome
     {
         private Model model;
 
-        private bool isMetronomeRunned = false;
-
-        private int actualModelTempo;
-        private int actualModelTime;
-
         public ViewModel(string fromViewTempo, string fromViewTime)
         {
-            ActualModelTempo = ParseString(fromViewTempo, ActualModelTempo);
-            ActualModelTime = ParseString(fromViewTime, ActualModelTime);
+            FromViewTempo = ParseString(fromViewTempo, FromViewTempo);
+            FromViewTime = ParseString(fromViewTime, FromViewTime);
 
-            model = new Model(ActualModelTempo, ActualModelTime);
-            model.PropertyChanged += FromModelNotify;
+            model = new Model(FromViewTempo, FromViewTime);
+            model.PropertyChanged += ModelNotify;
         }
 
-        public int ActualModelTempo
-        {
-            get => actualModelTempo;
-            set => actualModelTempo = value;
-        }
+        private int FromViewTempo { get; set; }
+        private int FromViewTime { get; set; }
 
-        public int ActualModelTime
-        {
-            get => actualModelTime;
-            set => actualModelTime = value;
-        }
-
-        public int SettedTempo
-        {
-            get => model.SettedTempo;
-        }
-
-        public int SettedTime
-        {
-            get => model.SettedTime;
-        }
+        public bool IsMetronomeRunned { get => model.IsMetronomeRunned; }
+        public int SettedTempo { get => model.SettedTempo; }
+        public int SettedTime { get => model.SettedTime; }
+        public int EstimateTime { get => model.EstimateTime; }
 
         private int ParseString(string inputString, int previousIntVariableValue)
         {
@@ -64,26 +45,19 @@ namespace Timetronome
 
         public void ToggleMetronomeState(string fromViewTempo, string fromViewTime)
         {
-            ActualModelTempo = ParseString(fromViewTempo, ActualModelTempo);
-            ActualModelTime = ParseString(fromViewTime, ActualModelTime);
+            FromViewTempo = ParseString(fromViewTempo, FromViewTempo);
+            FromViewTime = ParseString(fromViewTime, FromViewTime);
 
-            if (!isMetronomeRunned)
-                model.RunMetronome(ActualModelTempo, ActualModelTime);
-            else
-            {
-                model.StopMetronome();
-            }
-
-            isMetronomeRunned = !isMetronomeRunned;
+            model.ToogleMetronomeState(FromViewTempo, FromViewTime);
         }
 
-        public void FromModelNotify(object sender, PropertyChangedEventArgs e)
+        private void ModelNotify(object sender, PropertyChangedEventArgs e)
         {
             OnPropertyChanged(e.PropertyName);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        public void OnPropertyChanged(string propertyName = "")
+        private void OnPropertyChanged(string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

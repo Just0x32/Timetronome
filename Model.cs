@@ -33,7 +33,7 @@ namespace Timetronome
             {
                 return settedTempo;
             }
-            set
+            private set
             {
                 if (value > 300)
                 {
@@ -58,7 +58,7 @@ namespace Timetronome
             {
                 return settedTime;
             }
-            set
+            private set
             {
                 if (value > 600)
                 {
@@ -97,18 +97,30 @@ namespace Timetronome
             {
                 return isMetronomeRunned;
             }
-            set
+            private set
             {
                 isMetronomeRunned = value;
                 OnPropertyChanged();
             }
         }
 
-        public void RunMetronome(int receivedTempo, int receivedTime)
+        public void ToogleMetronomeState(int receivedTempo, int receivedTime)
         {
-            SettedTempo = receivedTempo;
-            SettedTime = receivedTime;
+            if (!IsMetronomeRunned)
+            {
+                SettedTempo = receivedTempo;
+                SettedTime = receivedTime;
 
+                RunMetronome();
+            }
+            else
+            {
+                StopMetronome();
+            }
+        }
+
+        private void RunMetronome()
+        {
             clickerThread = new Thread(new ThreadStart(Clicker));
             timerThread = new Thread(new ThreadStart(Timer));
 
@@ -118,7 +130,7 @@ namespace Timetronome
             IsMetronomeRunned = true;
         }
 
-        public void StopMetronome()
+        private void StopMetronome()
         {
             IsMetronomeRunned = false;
 
@@ -165,7 +177,7 @@ namespace Timetronome
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
