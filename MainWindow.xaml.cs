@@ -52,6 +52,9 @@ namespace Timetronome
         {
             if (e.PropertyName == "IsMetronomeRunned" || e.PropertyName == "EstimateTime")
                 ChangeStartStopButtonText();
+
+            if (e.PropertyName == "IsMediaFailed" && viewModel.IsMediaFailed)
+                ShowMediaFailedMessage();
         }
 
         private void StartStopButtonClick(object sender, RoutedEventArgs e)
@@ -65,6 +68,11 @@ namespace Timetronome
                 StartStopButtonText = "Est. time:" + Environment.NewLine + viewModel.EstimateTime + " min";
             else
                 StartStopButtonText = "Start";
+        }
+
+        private void ShowMediaFailedMessage()
+        {
+            MessageBox.Show("click.wav is absent!");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

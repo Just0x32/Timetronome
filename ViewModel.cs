@@ -29,6 +29,8 @@ namespace Timetronome
         public int SettedTime { get => model.SettedTime; }
         public int EstimateTime { get => model.EstimateTime; }
 
+        public bool IsMediaFailed { get => model.IsMediaFailed; }
+
         private int ParseString(string inputString, int previousIntVariableValue)
         {
             int parseResult;

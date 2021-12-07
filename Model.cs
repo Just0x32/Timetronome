@@ -6,11 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Media;
 
 namespace Timetronome
 {
     public class Model : INotifyPropertyChanged
     {
+        private bool isMediaFailed;
         private bool isMetronomeRunned;
         private int settedTempo;
         private int settedTime;
@@ -19,12 +21,34 @@ namespace Timetronome
         Thread timerThread;
         Thread clickerThread;
 
+        MediaPlayer mediaPlayer;
+
         public Model (int receivedTempo, int receivedTime)
         {
             SettedTempo = receivedTempo;
             SettedTime = receivedTime;
 
             IsMetronomeRunned = false;
+            IsMediaFailed = false;
+
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.Open(new Uri("click.wav", UriKind.Relative));
+            mediaPlayer.MediaFailed += NotifyMediaFailed;
+        }
+
+        private void NotifyMediaFailed(object sender, ExceptionEventArgs e)
+        {
+            IsMediaFailed = true;
+        }
+
+        public bool IsMediaFailed
+        {
+            get => isMediaFailed;
+            private set
+            {
+                isMediaFailed = value;
+                OnPropertyChanged();
+            }
         }
 
         public int SettedTempo
@@ -147,7 +171,9 @@ namespace Timetronome
 
             while (IsMetronomeRunned)
             {
-                Console.Beep(4000, 100);
+                //Console.Beep(4000, 100);
+
+                mediaPlayer.Play();
 
                 try
                 {
