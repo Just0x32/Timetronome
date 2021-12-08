@@ -29,12 +29,13 @@ namespace Timetronome
         public MainWindow()
         {
             InitializeComponent();
-
+            
             StartStopButtonText = "Start";
 
             viewModel = new ViewModel("120", "5");
-
             DataContext = viewModel;
+
+            this.Closing += MainWindowClosing;
             viewModel.PropertyChanged += ViewModelNotify;
         }
 
@@ -72,8 +73,10 @@ namespace Timetronome
 
         private void ShowMediaFailedMessage()
         {
-            MessageBox.Show("click.wav is absent!");
+            MessageBox.Show("click.wav is absent or broken!");
         }
+
+        private void MainWindowClosing(object sender, System.ComponentModel.CancelEventArgs e) => viewModel.CloseApp();
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged ([CallerMemberName] string propertyName = "")

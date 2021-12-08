@@ -12,33 +12,40 @@ namespace Timetronome
 {
     public class Model : INotifyPropertyChanged
     {
-        private bool isMediaFailed;
-        private bool isMetronomeRunned;
+        private bool isClosingApp = false;
+        private bool isMediaFailed = false;
+        private bool isMetronomeRunned = false;
         private int settedTempo;
         private int settedTime;
         private int estimateTime;
+        private string toFilePath = "click.wav";
 
         Thread timerThread;
         Thread clickerThread;
 
         MediaPlayer mediaPlayer;
+        MediaPlayer mediaChecker;
 
         public Model (int receivedTempo, int receivedTime)
         {
             SettedTempo = receivedTempo;
             SettedTime = receivedTime;
 
-            IsMetronomeRunned = false;
-            IsMediaFailed = false;
+            clickerThread = new Thread(new ThreadStart(Clicker));
+            timerThread = new Thread(new ThreadStart(Timer));
 
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.Open(new Uri("click.wav", UriKind.Relative));
-            mediaPlayer.MediaFailed += NotifyMediaFailed;
+            //CheckMediaFile(toFilePath);
+
+            clickerThread.Start();
+            timerThread.Start();
+
+            //CloseMediaChecker();
         }
 
-        private void NotifyMediaFailed(object sender, ExceptionEventArgs e)
+        private bool IsClosingApp
         {
-            IsMediaFailed = true;
+            get => isClosingApp;
+            set => isClosingApp = value;
         }
 
         public bool IsMediaFailed
@@ -51,12 +58,19 @@ namespace Timetronome
             }
         }
 
+        public bool IsMetronomeRunned
+        {
+            get => isMetronomeRunned;
+            private set
+            {
+                isMetronomeRunned = value;
+                OnPropertyChanged();
+            }
+        }
+
         public int SettedTempo
         {
-            get
-            {
-                return settedTempo;
-            }
+            get => settedTempo;
             private set
             {
                 if (value > 300)
@@ -78,10 +92,7 @@ namespace Timetronome
 
         public int SettedTime
         {
-            get
-            {
-                return settedTime;
-            }
+            get => settedTime;
             private set
             {
                 if (value > 600)
@@ -103,33 +114,18 @@ namespace Timetronome
 
         public int EstimateTime
         {
-            get
-            {
-                return estimateTime;
-            }
+            get => estimateTime;
             private set
             {
                 estimateTime = value;
-
-                OnPropertyChanged();
-            }
-        }
-
-        public bool IsMetronomeRunned
-        {
-            get
-            {
-                return isMetronomeRunned;
-            }
-            private set
-            {
-                isMetronomeRunned = value;
                 OnPropertyChanged();
             }
         }
 
         public void ToogleMetronomeState(int receivedTempo, int receivedTime)
         {
+            //CloseMediaChecker();
+
             if (!IsMetronomeRunned)
             {
                 SettedTempo = receivedTempo;
@@ -145,67 +141,115 @@ namespace Timetronome
 
         private void RunMetronome()
         {
-            clickerThread = new Thread(new ThreadStart(Clicker));
-            timerThread = new Thread(new ThreadStart(Timer));
-
-            clickerThread.Start();
-            timerThread.Start();
-
             IsMetronomeRunned = true;
+
+            ThreadInterrupt(clickerThread);
+            ThreadInterrupt(timerThread);
         }
 
         private void StopMetronome()
         {
             IsMetronomeRunned = false;
 
-            if (clickerThread.IsAlive)
-                clickerThread.Interrupt();
-
-            if (timerThread.IsAlive)
-                timerThread.Interrupt();
+            ThreadInterrupt(clickerThread);
+            ThreadInterrupt(timerThread);
         }
 
         private void Clicker()
         {
-            int delay = 60000 / SettedTempo;
 
-            while (IsMetronomeRunned)
+
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.MediaFailed += NotifyMediaFailed;
+
+            ThreadDelay(5000);
+
+            mediaPlayer.Open(new Uri(toFilePath, UriKind.Relative));
+
+
+            int delay;
+
+            while (!IsClosingApp)
             {
-                //Console.Beep(4000, 100);
+                ThreadWaiting();
 
-                mediaPlayer.Play();
+                delay = 60000 / SettedTempo;
 
-                try
+                while (!IsClosingApp && IsMetronomeRunned)
                 {
-                    Thread.Sleep(delay);
+                    mediaPlayer.Stop();
+                    mediaPlayer.Play();
+
+                    ThreadDelay(delay);
                 }
-                catch (ThreadInterruptedException e) { }
             }
         }
 
         private void Timer()
         {
-            EstimateTime = SettedTime;
-
-            do
+            while (!IsClosingApp)
             {
-                try
+                ThreadWaiting();
+
+                EstimateTime = SettedTime;
+
+                while (!IsClosingApp && IsMetronomeRunned && (EstimateTime > 0))
                 {
-                    Thread.Sleep(60000);
+                    ThreadDelay(60000);
+
+                    EstimateTime--;
                 }
-                catch (ThreadInterruptedException e) { }
 
-                EstimateTime--;
+                IsMetronomeRunned = false;
             }
-            while (IsMetronomeRunned && (EstimateTime > 0));
-
-            IsMetronomeRunned = false;
         }
+
+        private void ThreadDelay(int delay)
+        {
+            try
+            {
+                Thread.Sleep(delay);
+            }
+            catch (ThreadInterruptedException e) { }
+        }
+
+        private void ThreadWaiting()
+        {
+            try
+            {
+                Thread.Sleep(Timeout.Infinite);
+            }
+            catch (ThreadInterruptedException e) { }
+        }
+
+        private void ThreadInterrupt(Thread threadVariable)
+        {
+            if (threadVariable.IsAlive)
+                threadVariable.Interrupt();
+        }
+
+        private void CheckMediaFile(string toFilePath)
+        {
+            mediaChecker = new MediaPlayer();
+
+            mediaChecker.MediaFailed += NotifyMediaFailed;
+
+            mediaChecker.Open(new Uri(toFilePath, UriKind.Relative));
+        }
+
+        private void CloseMediaChecker() => mediaChecker?.Close();
+
+        public void CloseApp()
+        {
+            IsClosingApp = true;
+
+            ThreadInterrupt(clickerThread);
+            ThreadInterrupt(timerThread);
+        }
+
+        private void NotifyMediaFailed(object sender, ExceptionEventArgs e) => IsMediaFailed = true;
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        private void OnPropertyChanged([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

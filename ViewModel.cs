@@ -53,6 +53,8 @@ namespace Timetronome
             model.ToogleMetronomeState(FromViewTempo, FromViewTime);
         }
 
+        public void CloseApp() => model.CloseApp();
+
         private void ModelNotify(object sender, PropertyChangedEventArgs e)
         {
             OnPropertyChanged(e.PropertyName);
