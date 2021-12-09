@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace Timetronome
 {
@@ -24,7 +26,6 @@ namespace Timetronome
         Thread clickerThread;
 
         MediaPlayer mediaPlayer;
-        MediaPlayer mediaChecker;
 
         public Model (int receivedTempo, int receivedTime)
         {
@@ -34,12 +35,8 @@ namespace Timetronome
             clickerThread = new Thread(new ThreadStart(Clicker));
             timerThread = new Thread(new ThreadStart(Timer));
 
-            //CheckMediaFile(toFilePath);
-
             clickerThread.Start();
             timerThread.Start();
-
-            //CloseMediaChecker();
         }
 
         private bool IsClosingApp
@@ -124,8 +121,6 @@ namespace Timetronome
 
         public void ToogleMetronomeState(int receivedTempo, int receivedTime)
         {
-            //CloseMediaChecker();
-
             if (!IsMetronomeRunned)
             {
                 SettedTempo = receivedTempo;
@@ -157,15 +152,12 @@ namespace Timetronome
 
         private void Clicker()
         {
-
-
             mediaPlayer = new MediaPlayer();
-            mediaPlayer.MediaFailed += NotifyMediaFailed;
 
-            ThreadDelay(5000);
+            //mediaPlayer.MediaFailed += NotifyMediaFailed;         Doesn't work
 
+            mediaPlayer.Volume = 1;
             mediaPlayer.Open(new Uri(toFilePath, UriKind.Relative));
-
 
             int delay;
 
@@ -183,6 +175,8 @@ namespace Timetronome
                     ThreadDelay(delay);
                 }
             }
+
+            mediaPlayer.Close();
         }
 
         private void Timer()
@@ -228,16 +222,7 @@ namespace Timetronome
                 threadVariable.Interrupt();
         }
 
-        private void CheckMediaFile(string toFilePath)
-        {
-            mediaChecker = new MediaPlayer();
-
-            mediaChecker.MediaFailed += NotifyMediaFailed;
-
-            mediaChecker.Open(new Uri(toFilePath, UriKind.Relative));
-        }
-
-        private void CloseMediaChecker() => mediaChecker?.Close();
+        private void NotifyMediaFailed(object sender, ExceptionEventArgs e) => IsMediaFailed = true;
 
         public void CloseApp()
         {
@@ -246,8 +231,6 @@ namespace Timetronome
             ThreadInterrupt(clickerThread);
             ThreadInterrupt(timerThread);
         }
-
-        private void NotifyMediaFailed(object sender, ExceptionEventArgs e) => IsMediaFailed = true;
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

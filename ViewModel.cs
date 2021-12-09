@@ -55,15 +55,9 @@ namespace Timetronome
 
         public void CloseApp() => model.CloseApp();
 
-        private void ModelNotify(object sender, PropertyChangedEventArgs e)
-        {
-            OnPropertyChanged(e.PropertyName);
-        }
+        private void ModelNotify(object sender, PropertyChangedEventArgs e) => OnPropertyChanged(e.PropertyName);
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged(string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        private void OnPropertyChanged(string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

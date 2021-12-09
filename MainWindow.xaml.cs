@@ -25,14 +25,16 @@ namespace Timetronome
         private ViewModel viewModel;
 
         private string startStopButtonText;
+        private bool isEnabledTextBox;
 
         public MainWindow()
         {
             InitializeComponent();
             
             StartStopButtonText = "Start";
+            IsEnabledTextBox = true;
 
-            viewModel = new ViewModel("120", "5");
+            viewModel = new ViewModel("120", "10");
             DataContext = viewModel;
 
             this.Closing += MainWindowClosing;
@@ -49,19 +51,33 @@ namespace Timetronome
             }
         }
 
+        public bool IsEnabledTextBox
+        {
+            get => isEnabledTextBox;
+            private set
+            {
+                isEnabledTextBox = value;
+                OnPropertyChanged();
+            }
+        }
+
         private void ViewModelNotify(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "IsMetronomeRunned" || e.PropertyName == "EstimateTime")
+            if (e.PropertyName == "EstimateTime")
                 ChangeStartStopButtonText();
+
+            if (e.PropertyName=="IsMetronomeRunned")
+            {
+                ChangeStartStopButtonText();
+
+                IsEnabledTextBox = !viewModel.IsMetronomeRunned;
+            }
 
             if (e.PropertyName == "IsMediaFailed" && viewModel.IsMediaFailed)
                 ShowMediaFailedMessage();
         }
 
-        private void StartStopButtonClick(object sender, RoutedEventArgs e)
-        {
-            viewModel.ToggleMetronomeState(TempoTextBox.Text, TimerTextBox.Text);
-        }
+        private void StartStopButtonClick(object sender, RoutedEventArgs e) => viewModel.ToggleMetronomeState(TempoTextBox.Text, TimerTextBox.Text);
 
         private void ChangeStartStopButtonText()
         {
@@ -71,17 +87,11 @@ namespace Timetronome
                 StartStopButtonText = "Start";
         }
 
-        private void ShowMediaFailedMessage()
-        {
-            MessageBox.Show("click.wav is absent or broken!");
-        }
+        private void ShowMediaFailedMessage() => MessageBox.Show("click.wav is absent or broken!");
 
         private void MainWindowClosing(object sender, System.ComponentModel.CancelEventArgs e) => viewModel.CloseApp();
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged ([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        private void OnPropertyChanged ([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
