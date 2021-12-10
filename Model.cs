@@ -27,7 +27,7 @@ namespace Timetronome
 
         MediaPlayer mediaPlayer;
 
-        public Model (int receivedTempo, int receivedTime)
+        public Model(int receivedTempo, int receivedTime)
         {
             SettedTempo = receivedTempo;
             SettedTime = receivedTime;
@@ -82,7 +82,7 @@ namespace Timetronome
                 {
                     settedTempo = value;
                 }
-                
+
                 OnPropertyChanged();
             }
         }

@@ -30,7 +30,7 @@ namespace Timetronome
         public MainWindow()
         {
             InitializeComponent();
-            
+
             StartStopButtonText = "Start";
             IsEnabledTextBox = true;
 
@@ -66,7 +66,7 @@ namespace Timetronome
             if (e.PropertyName == "EstimateTime")
                 ChangeStartStopButtonText();
 
-            if (e.PropertyName=="IsMetronomeRunned")
+            if (e.PropertyName == "IsMetronomeRunned")
             {
                 ChangeStartStopButtonText();
 
@@ -92,6 +92,6 @@ namespace Timetronome
         private void MainWindowClosing(object sender, System.ComponentModel.CancelEventArgs e) => viewModel.CloseApp();
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged ([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        private void OnPropertyChanged([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
